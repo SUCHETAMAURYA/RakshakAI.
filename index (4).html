@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<title>रक्षक AI — RakshakAI</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a0a;color:#fff;font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;overflow-x:hidden;transition:background 0.5s}
+body.night-mode{background:#000510}
+.tricolor{height:5px;background:linear-gradient(to right,#FF9933 33%,#fff 33% 66%,#138808 66%);position:fixed;top:0;left:0;right:0;z-index:999}
+.night-banner{display:none;background:linear-gradient(135deg,#000510,#0a0a2a);border:1px solid #3949AB;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#7986CB;text-align:center}
+.night-banner.show{display:block}
+#splash{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;text-align:center}
+.shield{font-size:80px;margin-bottom:10px;filter:drop-shadow(0 0 20px #FF6B00)}
+.app-title{font-size:42px;font-weight:900;color:#FF6B00;letter-spacing:2px;margin-bottom:4px}
+.app-hindi{font-size:22px;color:#FF9500;margin-bottom:6px}
+.app-sub{font-size:13px;color:#888;margin-bottom:30px}
+.stat-row{display:flex;gap:12px;margin-bottom:30px}
+.stat{background:#161616;border:1px solid #222;border-radius:10px;padding:12px 16px;text-align:center;flex:1}
+.stat-num{font-size:20px;font-weight:800}
+.stat-lbl{font-size:10px;color:#888;margin-top:2px}
+#startBtn{background:linear-gradient(135deg,#FF6B00,#FF9500);border:none;color:#fff;font-size:20px;font-weight:800;padding:20px 50px;border-radius:20px;cursor:pointer;box-shadow:0 0 30px rgba(255,107,0,0.5);width:100%;max-width:340px;transition:transform 0.1s}
+#startBtn:active{transform:scale(0.97)}
+#permStatus{margin-top:16px;font-size:13px;color:#888;text-align:center;max-width:320px}
+.perm-ok{color:#00C853 !important}.perm-err{color:#FF1744 !important}.perm-wait{color:#FFD600 !important}
+#dashboard{display:none;padding:12px;padding-top:16px}
+.section-title{font-size:11px;color:#FF6B00;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:16px 0 8px}
+.speed-card{background:linear-gradient(135deg,#161616,#1a1a1a);border:2px solid #FF6B00;border-radius:20px;padding:20px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden}
+.speed-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(to right,#FF9933,#fff,#138808)}
+.speed-num{font-size:72px;font-weight:900;line-height:1;color:#FF6B00;transition:color 0.3s}
+.speed-unit{font-size:16px;color:#888;margin-top:2px}
+.speed-label{font-size:13px;color:#aaa;margin-top:6px}
+.speed-bar-wrap{background:#222;border-radius:10px;height:8px;margin-top:12px;overflow:hidden}
+.speed-bar{height:100%;border-radius:10px;background:linear-gradient(to right,#00C853,#FFD600,#FF1744);transition:width 0.5s ease;width:0%}
+.speed-status{font-size:13px;font-weight:700;margin-top:8px;padding:6px 16px;border-radius:20px;display:inline-block}
+.status-safe{background:#0a2a0a;color:#00C853;border:1px solid #00C853}
+.status-warn{background:#2a2a00;color:#FFD600;border:1px solid #FFD600}
+.status-danger{background:#2a0000;color:#FF1744;border:1px solid #FF1744}
+.voice-toggle{display:flex;align-items:center;justify-content:space-between;background:#111;border-radius:12px;padding:10px 14px;margin-bottom:10px}
+.toggle-switch{width:44px;height:24px;background:#333;border-radius:12px;position:relative;cursor:pointer;transition:background 0.3s}
+.toggle-switch.on{background:#FF6B00}
+.toggle-knob{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.3s}
+.toggle-switch.on .toggle-knob{left:22px}
+.gps-info{background:#111;border:1px solid #222;border-radius:14px;padding:14px;margin-bottom:12px}
+.gps-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #1a1a1a}
+.gps-row:last-child{border-bottom:none}
+.gps-key{font-size:12px;color:#666}
+.gps-val{font-size:13px;font-weight:700;color:#fff}
+.gps-val.live{color:#00C853}
+.weather-card{border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid #333;background:#111}
+.weather-row{display:flex;align-items:center;gap:12px}
+.weather-icon{font-size:36px}
+.weather-info{flex:1}
+.weather-condition{font-size:16px;font-weight:700}
+.weather-sub{font-size:12px;color:#888;margin-top:2px}
+.weather-warning{background:#2a1500;border:1px solid #FF6B00;border-radius:10px;padding:8px 12px;margin-top:8px;font-size:12px;color:#FF9500;display:none}
+.risk-card{background:#161616;border-radius:16px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+.risk-circle{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;border:3px solid #00C853;flex-shrink:0;transition:all 0.5s}
+.risk-info{flex:1}
+.risk-title{font-size:13px;color:#888;margin-bottom:4px}
+.risk-desc{font-size:15px;font-weight:700;color:#00C853}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.mini-card{background:#161616;border-radius:14px;padding:14px;text-align:center;border:1px solid #222;position:relative}
+.mini-card-icon{font-size:24px;margin-bottom:6px}
+.mini-card-val{font-size:20px;font-weight:800;color:#FF6B00}
+.mini-card-lbl{font-size:10px;color:#888;margin-top:2px}
+.live-dot{width:8px;height:8px;background:#00C853;border-radius:50%;position:absolute;top:10px;right:10px;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+.pothole-card{background:#1a0d00;border:1px solid #FF6B00;border-radius:16px;padding:14px;margin-bottom:12px}
+.pothole-log{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.pothole-item{background:#111;border-radius:8px;padding:8px 12px;font-size:12px;border-left:3px solid #FF6B00;display:flex;justify-content:space-between;align-items:center}
+.pothole-item.severe{border-left-color:#FF1744}
+.pothole-item.moderate{border-left-color:#FFD600}
+.pothole-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.pstat{background:#111;border-radius:8px;padding:8px;text-align:center}
+.pstat-num{font-size:18px;font-weight:800;color:#FF6B00}
+.pstat-lbl{font-size:9px;color:#888;margin-top:2px}
+.crash-card{background:#1a0000;border:1px solid #FF1744;border-radius:16px;padding:16px;margin-bottom:12px}
+.crash-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.accel-bars{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.accel-bar-wrap{text-align:center}
+.accel-label{font-size:10px;color:#888;margin-bottom:4px}
+.accel-val{font-size:14px;font-weight:700;color:#FF6B00}
+.crash-status{margin-top:10px;font-size:12px;color:#888;text-align:center;padding:8px;background:#0a0000;border-radius:8px}
+.score-card{background:linear-gradient(135deg,#0a1a0a,#0d2a0d);border:2px solid #00C853;border-radius:20px;padding:20px;margin-bottom:12px;text-align:center}
+.score-big{font-size:80px;font-weight:900;line-height:1}
+.score-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;text-align:left}
+.score-item{background:#0a0a0a;border-radius:10px;padding:10px 12px}
+.score-item-label{font-size:11px;color:#888;margin-bottom:4px}
+.score-item-val{font-size:15px;font-weight:700}
+.score-tip{background:#111;border-radius:10px;padding:12px;margin-top:12px;font-size:12px;color:#aaa;text-align:left;border-left:3px solid #00C853}
+.sos-btn{width:100%;background:linear-gradient(135deg,#CC0000,#FF1744);border:none;color:#fff;font-size:18px;font-weight:800;padding:18px;border-radius:16px;cursor:pointer;margin-bottom:10px}
+.call-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.call-btn{border:none;color:#fff;font-size:13px;font-weight:700;padding:14px 8px;border-radius:12px;cursor:pointer;text-align:center}
+.call-108{background:#1565C0}.call-100{background:#2E7D32}
+.zone-card{background:#1a1000;border:1px solid #FF6B00;border-radius:14px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.zone-icon{font-size:28px;flex-shrink:0}
+.zone-info{flex:1}
+.zone-name{font-size:14px;font-weight:700;color:#FF9500}
+.zone-detail{font-size:11px;color:#888;margin-top:2px}
+.zone-dist{font-size:12px;font-weight:700;flex-shrink:0}
+#crashOverlay{display:none;position:fixed;inset:0;background:rgba(180,0,0,0.95);z-index:9999;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px}
+#crashOverlay.show{display:flex}
+.crash-alert-icon{font-size:80px;animation:shake 0.5s infinite}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.crash-alert-title{font-size:32px;font-weight:900;margin:10px 0}
+.crash-alert-sub{font-size:15px;color:#ffaaaa;margin-bottom:20px}
+.crash-countdown{font-size:64px;font-weight:900;color:#fff;margin:10px 0}
+.crash-cancel{background:#fff;color:#CC0000;border:none;font-size:18px;font-weight:800;padding:16px 40px;border-radius:16px;cursor:pointer;margin-top:10px;width:100%}
+.crash-calling{background:#CC0000;color:#fff;border:2px solid #fff;font-size:16px;font-weight:700;padding:14px;border-radius:12px;margin-top:8px;width:100%;cursor:pointer}
+#potholeAlert{display:none;position:fixed;top:60px;left:16px;right:16px;background:#FF6B00;border-radius:14px;padding:14px 18px;z-index:8888}
+#potholeAlert.show{display:flex;align-items:center;gap:12px;animation:slideDown 0.3s ease}
+@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #222;display:none;grid-template-columns:repeat(5,1fr);padding:8px 0 12px}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;transition:opacity 0.2s}
+.nav-item.active{opacity:1}
+.nav-icon{font-size:20px}
+.nav-label{font-size:9px;color:#888}
+.nav-item.active .nav-label{color:#FF6B00}
+.tab{display:none;padding-bottom:80px}
+.tab.active{display:block}
+.loc-error{background:#1a0a00;border:1px solid #FF6B00;border-radius:12px;padding:14px;margin-bottom:12px;font-size:12px;color:#FF9500;display:none}
+</style>
+</head>
+<body>
+<div class="tricolor"></div>
+
+<div id="potholeAlert">
+  <span style="font-size:28px">🕳️</span>
+  <div><div style="font-weight:800;font-size:14px">POTHOLE DETECTED!</div><div style="font-size:11px;opacity:0.9" id="potholeAlertMsg">Bump detected</div></div>
+</div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="shield">🛡️</div>
+  <div class="app-title">RAKSHAK AI</div>
+  <div class="app-hindi">रक्षक AI</div>
+  <div class="app-sub">आपकी सड़क, आपकी सुरक्षा • Your Road. Your Protection.</div>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num" style="color:#FF6B00">4.5L+</div><div class="stat-lbl">सालाना दुर्घटनाएं</div></div>
+    <div class="stat"><div class="stat-num" style="color:#FF1744">1.7L</div><div class="stat-lbl">मौतें हर साल</div></div>
+    <div class="stat"><div class="stat-num" style="color:#00C853">85%</div><div class="stat-lbl">रोकी जा सकती हैं</div></div>
+  </div>
+  <button id="startBtn" onclick="startApp()">🚗 शुरू करें — Start</button>
+  <div id="permStatus">बटन दबाएं — Location permission माँगी जाएगी</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" onclick="showTab('speed')"><div class="nav-icon">🚗</div><div class="nav-label">Speed</div></div>
+    <div class="nav-item" onclick="showTab('pothole')"><div class="nav-icon">🕳️</div><div class="nav-label">Pothole</div></div>
+    <div class="nav-item" onclick="showTab('crash')"><div class="nav-icon">💥</div><div class="nav-label">Crash</div></div>
+    <div class="nav-item" onclick="showTab('score')"><div class="nav-icon">⭐</div><div class="nav-label">Score</div></div>
+    <div class="nav-item" onclick="showTab('sos')"><div class="nav-icon">🆘</div><div class="nav-label">SOS</div></div>
+  </div>
+
+  <!-- SPEED TAB -->
+  <div class="tab active" id="tab-speed" style="padding:12px;padding-top:16px">
+    <div class="loc-error" id="locError">⚠️ <span id="locErrorMsg"></span><br>Fix: Chrome > 3dots > Settings > Site Settings > Location > Allow</div>
+    <div class="night-banner" id="nightBanner">🌙 Night Mode Active — Extra safety warnings enabled</div>
+    <div class="voice-toggle">
+      <div><div style="font-size:13px;font-weight:700">🔊 Hindi Voice Alerts</div><div style="font-size:11px;color:#888;margin-top:2px">Speed warnings Hindi mein bolega</div></div>
+      <div class="toggle-switch on" id="voiceToggle" onclick="toggleVoice()"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="weather-card" id="weatherCard">
+      <div class="weather-row">
+        <div class="weather-icon" id="weatherIcon">🌤️</div>
+        <div class="weather-info"><div class="weather-condition" id="weatherCondition">Weather detect ho raha hai...</div><div class="weather-sub" id="weatherSub">GPS se real weather fetch hoga</div></div>
+        <div style="text-align:right"><div style="font-size:18px;font-weight:800;color:#FF6B00" id="weatherTemp">--°</div><div style="font-size:10px;color:#888">local</div></div>
+      </div>
+      <div class="weather-warning" id="weatherWarning"></div>
+    </div>
+    <div class="speed-card">
+      <div class="speed-num" id="speedNum">0</div>
+      <div class="speed-unit">km/h</div>
+      <div class="speed-label" id="speedLabel">GPS chalu ho raha hai...</div>
+      <div class="speed-bar-wrap"><div class="speed-bar" id="speedBar"></div></div>
+      <div class="speed-status status-safe" id="speedStatus">✅ Surakshit</div>
+    </div>
+    <div class="gps-info">
+      <div class="section-title">📍 Live GPS Data</div>
+      <div class="gps-row"><span class="gps-key">Latitude</span><span class="gps-val live" id="gpsLat">--</span></div>
+      <div class="gps-row"><span class="gps-key">Longitude</span><span class="gps-val live" id="gpsLon">--</span></div>
+      <div class="gps-row"><span class="gps-key">Accuracy</span><span class="gps-val" id="gpsAcc">--</span></div>
+      <div class="gps-row"><span class="gps-key">Altitude</span><span class="gps-val" id="gpsAlt">--</span></div>
+      <div class="gps-row"><span class="gps-key">GPS Speed</span><span class="gps-val live" id="gpsSpeedRaw">--</span></div>
+      <div class="gps-row"><span class="gps-key">Updated</span><span class="gps-val" id="gpsTime">--</span></div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-circle" id="riskCircle">0</div>
+      <div class="risk-info"><div class="risk-title">AI Risk Score (0-100)</div><div class="risk-desc" id="riskDesc">Calculating...</div></div>
+    </div>
+    <div class="cards-grid">
+      <div class="mini-card"><div class="live-dot"></div><div class="mini-card-icon">📏</div><div class="mini-card-val" id="distVal">0.0</div><div class="mini-card-lbl">km travelled</div></div>
+      <div class="mini-card"><div class="mini-card-icon">⏱️</div><div class="mini-card-val" id="timeVal">00:00</div><div class="mini-card-lbl">drive time</div></div>
+      <div class="mini-card"><div class="mini-card-icon">🏎️</div><div class="mini-card-val" id="maxSpeedVal">0</div><div class="mini-card-lbl">max speed km/h</div></div>
+      <div class="mini-card"><div class="mini-card-icon">🕳️</div><div class="mini-card-val" id="potholeCountMini">0</div><div class="mini-card-lbl">potholes detected</div></div>
+    </div>
+  </div>
+
+  <!-- POTHOLE TAB -->
+  <div class="tab" id="tab-pothole" style="padding:12px;padding-top:16px">
+    <div class="pothole-card">
+      <div class="crash-header">
+        <span style="font-size:28px">🕳️</span>
+        <div><div style="font-size:15px;font-weight:700;color:#FF6B00">Pothole & Road Hazard Detector</div><div style="font-size:11px;color:#888">Accelerometer se bumps detect karta hai — real sensor</div></div>
+      </div>
+      <div class="pothole-stats">
+        <div class="pstat"><div class="pstat-num" id="totalPotholes">0</div><div class="pstat-lbl">Total</div></div>
+        <div class="pstat"><div class="pstat-num" id="severePotholes" style="color:#FF1744">0</div><div class="pstat-lbl">Severe</div></div>
+        <div class="pstat"><div class="pstat-num" id="moderatePotholes" style="color:#FFD600">0</div><div class="pstat-lbl">Moderate</div></div>
+      </div>
+      <div class="section-title">📋 Detected Potholes Log</div>
+      <div class="pothole-log" id="potholeLog"><div style="text-align:center;color:#444;font-size:12px;padding:20px">Drive karo — potholes detect honge</div></div>
+    </div>
+    <div style="background:#111;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div class="section-title">⚙️ Sensitivity</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="font-size:13px;color:#aaa">Pothole Sensitivity</span>
+        <input type="range" min="3" max="20" value="8" id="potholeSlider" style="width:100px" oninput="updatePotholeThreshold(this.value)">
+        <span style="font-size:13px;color:#FF6B00;font-weight:700" id="potholeThreshVal">8</span>
+      </div>
+      <div style="font-size:11px;color:#555">Low value = more sensitive • High value = only big potholes</div>
+    </div>
+    <div style="background:#111;border-radius:12px;padding:12px;font-size:11px;color:#555;text-align:center">🔬 Phone accelerometer detects sudden vertical Z-axis spikes when tyre hits a pothole or road bump.</div>
+  </div>
+
+  <!-- CRASH TAB -->
+  <div class="tab" id="tab-crash" style="padding:12px;padding-top:16px">
+    <div class="crash-card">
+      <div class="crash-header">
+        <span class="crash-icon" style="font-size:28px">💥</span>
+        <div><div style="font-size:15px;font-weight:700;color:#FF1744">Crash Detection</div><div style="font-size:11px;color:#888">Real-time accelerometer monitoring</div></div>
+      </div>
+      <div class="accel-bars">
+        <div class="accel-bar-wrap"><div class="accel-label">X (Left-Right)</div><div class="accel-val" id="accelX">0.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Y (Forward)</div><div class="accel-val" id="accelY">0.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Z (Up-Down)</div><div class="accel-val" id="accelZ">0.0</div></div>
+      </div>
+      <div class="accel-bars" style="margin-top:10px">
+        <div class="accel-bar-wrap"><div class="accel-label">Total Force</div><div class="accel-val" id="accelTotal" style="color:#FF6B00">0.0</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Crash Limit</div><div class="accel-val" id="crashLimitDisplay" style="color:#888">25</div></div>
+        <div class="accel-bar-wrap"><div class="accel-label">Status</div><div class="accel-val" id="accelStatus" style="color:#00C853">SAFE</div></div>
+      </div>
+      <div class="crash-status" id="crashStatusMsg">📱 Phone move karein — live data dikhega</div>
+      <button onclick="testShake()" style="width:100%;margin-top:10px;background:#2a0000;border:1px solid #FF1744;color:#FF1744;font-size:13px;font-weight:700;padding:10px;border-radius:10px;cursor:pointer">🧪 Demo Test — Crash Simulate karein</button>
+    </div>
+    <div style="background:#111;border-radius:14px;padding:14px">
+      <div class="section-title">⚙️ Settings</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="font-size:13px;color:#aaa">Crash Threshold (m/s²)</span>
+        <input type="range" min="10" max="50" value="25" id="thresholdSlider" style="width:100px" oninput="updateThreshold(this.value)">
+        <span style="font-size:13px;color:#FF6B00;font-weight:700" id="thresholdVal">25</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span style="font-size:13px;color:#aaa">Auto-cancel window</span>
+        <span style="font-size:13px;color:#FF6B00;font-weight:700">15 seconds</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE TAB -->
+  <div class="tab" id="tab-score" style="padding:12px;padding-top:16px">
+    <div class="score-card">
+      <div style="font-size:13px;color:#00C853;font-weight:700;margin-bottom:8px">⭐ DRIVE SAFETY SCORE</div>
+      <div class="score-big" id="scoreBig" style="color:#00C853">--</div>
+      <div style="font-size:24px;font-weight:700;margin-top:4px" id="scoreGrade" style="color:#00C853">Drive karo score dekhne ke liye</div>
+      <div class="score-breakdown">
+        <div class="score-item"><div class="score-item-label">🏎️ Speed Control</div><div class="score-item-val" id="scoreSpeed" style="color:#00C853">--/40</div></div>
+        <div class="score-item"><div class="score-item-label">🕳️ Road Smoothness</div><div class="score-item-val" id="scorePothole" style="color:#00C853">--/30</div></div>
+        <div class="score-item"><div class="score-item-label">💥 Impact Events</div><div class="score-item-val" id="scoreImpact" style="color:#00C853">--/20</div></div>
+        <div class="score-item"><div class="score-item-label">🌙 Time Safety</div><div class="score-item-val" id="scoreTime" style="color:#00C853">--/10</div></div>
+      </div>
+      <div class="score-tip" id="scoreTip">💡 Drive karo aur score automatically update hoga.</div>
+    </div>
+    <div style="background:#111;border-radius:14px;padding:14px">
+      <div class="section-title">📊 Drive Summary</div>
+      <div class="gps-row" style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between"><span style="font-size:12px;color:#666">Total Distance</span><span style="font-size:13px;font-weight:700" id="summaryDist">0.0 km</span></div>
+      <div class="gps-row" style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between"><span style="font-size:12px;color:#666">Drive Time</span><span style="font-size:13px;font-weight:700" id="summaryTime">00:00</span></div>
+      <div class="gps-row" style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between"><span style="font-size:12px;color:#666">Max Speed</span><span style="font-size:13px;font-weight:700" id="summaryMax">0 km/h</span></div>
+      <div class="gps-row" style="padding:8px 0;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between"><span style="font-size:12px;color:#666">Potholes Hit</span><span style="font-size:13px;font-weight:700" id="summaryPotholes">0</span></div>
+      <div style="padding:8px 0;display:flex;justify-content:space-between"><span style="font-size:12px;color:#666">Hard Impacts</span><span style="font-size:13px;font-weight:700" id="summaryImpacts">0</span></div>
+    </div>
+  </div>
+
+  <!-- SOS TAB -->
+  <div class="tab" id="tab-sos" style="padding:12px;padding-top:16px">
+    <button class="sos-btn" onclick="triggerSOS()">🆘 EMERGENCY SOS</button>
+    <div class="call-row">
+      <button class="call-btn call-108" onclick="call108()">🚑 Call 108<br><span style="font-size:10px;font-weight:400">Ambulance</span></button>
+      <button class="call-btn call-100" onclick="call100()">🚔 Call 100<br><span style="font-size:10px;font-weight:400">Police</span></button>
+    </div>
+    <div style="background:#111;border-radius:14px;padding:14px;margin-bottom:12px">
+      <div class="section-title">📍 Share Location</div>
+      <button onclick="shareLocation()" style="width:100%;background:#1565C0;border:none;color:#fff;font-size:14px;font-weight:700;padding:14px;border-radius:12px;cursor:pointer;margin-bottom:8px">📲 WhatsApp par Location Share</button>
+      <div style="font-size:11px;color:#666;text-align:center" id="locationShareText">GPS ready hone par live location share hogi</div>
+    </div>
+    <div style="background:#111;border-radius:14px;padding:14px">
+      <div class="section-title">👨‍👩‍👧 Emergency Contacts</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161616;border-radius:10px"><span style="font-size:13px">👨 Papa</span><input type="tel" placeholder="+91 XXXXX XXXXX" id="contact1" style="background:#222;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;width:160px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#161616;border-radius:10px"><span style="font-size:13px">👩 Mummy</span><input type="tel" placeholder="+91 XXXXX XXXXX" id="contact2" style="background:#222;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;width:160px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CRASH OVERLAY -->
+<div id="crashOverlay">
+  <div class="crash-alert-icon">💥</div>
+  <div class="crash-alert-title">CRASH DETECTED!</div>
+  <div class="crash-alert-sub">Ambulance call hogi — <span id="countdownNum">15</span> seconds mein</div>
+  <div class="crash-countdown" id="crashCountdown">15</div>
+  <button class="crash-cancel" onclick="cancelCrash()">✋ CANCEL — Main Theek Hoon</button>
+  <button class="crash-calling" onclick="call108()">🚑 Abhi Call 108</button>
+</div>
+
+<script>
+let currentLat=null,currentLon=null,prevLat=null,prevLon=null,prevTime=null;
+let currentSpeed=0,maxSpeed=0,totalDist=0,driveStart=null;
+let crashThreshold=25,potholeThreshold=8;
+let crashCountdownTimer=null,crashActive=false;
+let voiceEnabled=true,lastVoiceAlert=0,lastVoiceSpeed=-1;
+let potholes=[],totalImpacts=0,lastPotholeTime=0;
+let isNightMode=false,prevZ=0;
+
+function startApp(){
+  const btn=document.getElementById('startBtn');
+  const st=document.getElementById('permStatus');
+  btn.disabled=true; btn.textContent='⏳ Permission maang rahe hain...';
+  st.className='perm-wait'; st.textContent='📍 Location ke liye Allow dabayein...';
+  if(!navigator.geolocation){st.className='perm-err';st.textContent='❌ GPS support nahi. Chrome use karein.';btn.disabled=false;btn.textContent='Retry';return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{st.className='perm-ok';st.textContent='✅ Location mili! App shuru...';currentLat=pos.coords.latitude;currentLon=pos.coords.longitude;
+      if(typeof DeviceMotionEvent!=='undefined'&&typeof DeviceMotionEvent.requestPermission==='function'){DeviceMotionEvent.requestPermission().then(()=>launchDashboard()).catch(()=>launchDashboard());}
+      else launchDashboard();},
+    err=>{btn.disabled=false;btn.textContent='🚗 Retry karein';st.className='perm-err';
+      const m={1:'❌ DENIED — Chrome Settings > Site Settings > Location > Allow karein',2:'❌ GPS OFF hai — Phone Location ON karein',3:'❌ Timeout — Bahar jayein, indoor GPS weak hota hai'};
+      st.textContent=m[err.code]||'❌ Error: '+err.message;},
+    {enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+
+function launchDashboard(){
+  document.getElementById('splash').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  document.getElementById('bottomNav').style.display='grid';
+  driveStart=Date.now();
+  checkNightMode(); setInterval(checkNightMode,60000);
+  navigator.geolocation.watchPosition(onGPS,onGPSErr,{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+  startAccelerometer();
+  setInterval(()=>{if(!driveStart)return;const e=Math.floor((Date.now()-driveStart)/1000);const t=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');document.getElementById('timeVal').textContent=t;document.getElementById('summaryTime').textContent=t;},1000);
+  setInterval(updateScore,15000);
+  // Retry weather every 5s until GPS is ready
+  const wInt=setInterval(()=>{if(currentLat&&currentLon){clearInterval(wInt);fetchWeather(currentLat,currentLon);}},5000);
+  setTimeout(()=>{clearInterval(wInt);if(!currentLat)showWeatherFallback();},25000);
+}
+
+function startAccelerometer(){
+  if(!window.DeviceMotionEvent){document.getElementById('crashStatusMsg').textContent='❌ Accelerometer not supported';return;}
+  let motionOK=false;
+  function testMotion(e){
+    const a=e.accelerationIncludingGravity;
+    if(a&&a.x!==null&&a.x!==undefined){
+      motionOK=true;
+      document.getElementById('crashStatusMsg').textContent='✅ Accelerometer LIVE — phone hilao!';
+      window.removeEventListener('devicemotion',testMotion,true);
+    }
+  }
+  window.addEventListener('devicemotion',onMotion,true);
+  window.addEventListener('devicemotion',testMotion,true);
+  setTimeout(()=>{
+    if(!motionOK){
+      document.getElementById('crashStatusMsg').textContent='⚠️ Motion sensor blocked! Chrome > 3dots > Settings > Site Settings > Motion Sensors > Allow karein';
+    }
+  },3000);
+}
+
+function checkNightMode(){
+  const h=new Date().getHours(); isNightMode=(h>=22||h<=5);
+  document.getElementById('nightBanner').classList[isNightMode?'add':'remove']('show');
+  document.body.classList[isNightMode?'add':'remove']('night-mode');
+}
+
+function fetchWeather(lat,lon){
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+    .then(r=>r.json()).then(d=>{
+      const w=d.current_weather,c=w.weathercode,temp=Math.round(w.temperature);
+      let icon='☀️',cond='Clear',warn='',risky=false;
+      if(c<=0){icon='☀️';cond='Clear Sky';}
+      else if(c<=3){icon='⛅';cond='Partly Cloudy';}
+      else if(c<=49){icon='🌫️';cond='Foggy';warn='⚠️ FOG: Visibility kam hai — headlights on karein, speed 40 se kam rakhen!';risky=true;}
+      else if(c<=67){icon='🌧️';cond='Rain';warn='🌧️ RAIN: Road slippery! Brakes dhire dabayein, speed kam karein!';risky=true;}
+      else if(c<=77){icon='❄️';cond='Snow/Ice';warn='❄️ ICE ALERT: Bahut khatarnak — bahut dhire chalein!';risky=true;}
+      else{icon='⛈️';cond='Thunderstorm';warn='⛈️ STORM: Rukne ki koshish karein — dangerous!';risky=true;}
+      document.getElementById('weatherIcon').textContent=icon;
+      document.getElementById('weatherCondition').textContent=cond;
+      document.getElementById('weatherSub').textContent='Wind: '+w.windspeed+' km/h • Live data';
+      document.getElementById('weatherTemp').textContent=temp+'°C';
+      if(risky){const el=document.getElementById('weatherWarning');el.style.display='block';el.textContent=warn;if(voiceEnabled)speak(warn.replace(/[⚠️🌧️❄️⛈️]/g,''));}
+    }).catch(showWeatherFallback);
+}
+
+function showWeatherFallback(){
+  const h=new Date().getHours();
+  let icon='☀️',cond='Clear',sub='Time-based';
+  if(h>=22||h<=5){icon='🌙';cond='Night Driving';sub='Extra caution required';}
+  else if(h>=18){icon='🌆';cond='Evening';sub='Reducing visibility';}
+  else if(h<=8){icon='🌅';cond='Morning';sub='Watch for fog';}
+  document.getElementById('weatherIcon').textContent=icon;
+  document.getElementById('weatherCondition').textContent=cond;
+  document.getElementById('weatherSub').textContent=sub;
+  document.getElementById('weatherTemp').textContent='--°C';
+}
+
+function onGPS(pos){
+  const lat=pos.coords.latitude,lon=pos.coords.longitude,now=Date.now();
+  const firstFix=!currentLat;
+  currentLat=lat; currentLon=lon;
+  document.getElementById('locError').style.display='none';
+  if(firstFix) fetchWeather(lat,lon);
+  let speed=0;
+  if(pos.coords.speed!==null&&pos.coords.speed>=0) speed=pos.coords.speed*3.6;
+  else if(prevLat!==null){const d=hav(prevLat,prevLon,lat,lon),dt=(now-prevTime)/1000;if(dt>0)speed=(d/dt)*3600;}
+  currentSpeed=speed<2?0:Math.round(speed*10)/10;
+  if(prevLat!==null){const d=hav(prevLat,prevLon,lat,lon);if(d<0.5)totalDist+=d;}
+  prevLat=lat;prevLon=lon;prevTime=now;
+  if(currentSpeed>maxSpeed)maxSpeed=currentSpeed;
+  document.getElementById('speedNum').textContent=Math.round(currentSpeed);
+  document.getElementById('gpsLat').textContent=lat.toFixed(6);
+  document.getElementById('gpsLon').textContent=lon.toFixed(6);
+  document.getElementById('gpsAcc').textContent=Math.round(pos.coords.accuracy)+' m';
+  document.getElementById('gpsAlt').textContent=pos.coords.altitude?Math.round(pos.coords.altitude)+' m':'N/A';
+  document.getElementById('gpsSpeedRaw').textContent=pos.coords.speed!==null?(pos.coords.speed*3.6).toFixed(1)+' km/h':'calculated';
+  document.getElementById('gpsTime').textContent=new Date(pos.timestamp).toLocaleTimeString();
+  document.getElementById('distVal').textContent=totalDist.toFixed(2);
+  document.getElementById('maxSpeedVal').textContent=Math.round(maxSpeed);
+  updateSpeedUI(currentSpeed); updateRisk(currentSpeed);
+}
+
+function onGPSErr(err){
+  document.getElementById('locError').style.display='block';
+  document.getElementById('locErrorMsg').textContent={1:'Permission denied',2:'GPS unavailable',3:'Timeout'}[err.code]||err.message;
+}
+
+function updateSpeedUI(s){
+  const bar=document.getElementById('speedBar'),st=document.getElementById('speedStatus'),lbl=document.getElementById('speedLabel'),num=document.getElementById('speedNum');
+  bar.style.width=Math.min((s/120)*100,100)+'%';
+  const nLimit=isNightMode?10:0;
+  if(s===0){lbl.textContent='🚗 Chalein — speed dikhegi';num.style.color='#FF6B00';st.className='speed-status status-safe';st.textContent='✅ Ruke hue hain';}
+  else if(s<60-nLimit){lbl.textContent=isNightMode?'🌙 Night mein safe!':'✅ Safe speed!';num.style.color='#00C853';st.className='speed-status status-safe';st.textContent='✅ Surakshit gati';voiceAlert('safe',s);}
+  else if(s<80-nLimit){lbl.textContent=isNightMode?'🌙 Night mein kam karein!':'⚠️ Thoda tez';num.style.color='#FFD600';st.className='speed-status status-warn';st.textContent='⚠️ Sawdhan';voiceAlert('warn',s);}
+  else{lbl.textContent=isNightMode?'🚨 NIGHT DANGER! Turant slow karein!':'🚨 Bahut tez! Slow karein!';num.style.color='#FF1744';st.className='speed-status status-danger';st.textContent='🚨 Khatarnak!';voiceAlert('danger',s);vibrate([200,100,200]);}
+}
+
+function voiceAlert(level,speed){
+  if(!voiceEnabled)return; const now=Date.now();
+  if(now-lastVoiceAlert<8000)return; if(Math.abs(speed-lastVoiceSpeed)<5)return;
+  lastVoiceAlert=now; lastVoiceSpeed=speed;
+  const msgs={safe:`Surakshit gati. ${Math.round(speed)} kilometer per hour.`,warn:`Sawdhan! Thoda tez. ${Math.round(speed)} kilometer per hour. Speed kam karein.`,danger:`Khatara! Bahut tez! ${Math.round(speed)} kilometer per hour! Turant slow karein!`};
+  speak((isNightMode&&level!=='safe'?'Raat ka samay hai. ':'')+msgs[level]);
+}
+
+function speak(text){
+  if(!window.speechSynthesis)return; window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text); u.lang='hi-IN'; u.rate=0.9; u.pitch=1; u.volume=1;
+  window.speechSynthesis.speak(u);
+}
+
+function toggleVoice(){
+  voiceEnabled=!voiceEnabled; const t=document.getElementById('voiceToggle');
+  if(voiceEnabled){t.classList.add('on');speak('Voice alerts chalu hain.');}
+  else{t.classList.remove('on');window.speechSynthesis&&window.speechSynthesis.cancel();}
+}
+
+function updateRisk(s){
+  let r=Math.min((s/120)*60,60); const h=new Date().getHours();
+  if(h>=22||h<=5)r+=25; else if(h>=18||h<=8)r+=12;
+  r+=Math.min(potholes.length*2,15); r=Math.min(Math.round(r),100);
+  const c=document.getElementById('riskCircle'),d=document.getElementById('riskDesc'); c.textContent=r;
+  const col=r<30?'#00C853':r<60?'#FFD600':'#FF1744';
+  c.style.borderColor=col; c.style.color=col; d.style.color=col;
+  d.textContent=r<30?'Kam jokhim — Safe Drive!':r<60?'Madhyam — Sawdhan':'⚠️ Uchch jokhim — Slow karein!';
+}
+
+function onMotion(e){
+  const a=e.accelerationIncludingGravity; if(!a)return;
+  const x=parseFloat(a.x)||0,y=parseFloat(a.y)||0,z=parseFloat(a.z)||0;
+  if(x===0&&y===0&&z===0)return; // skip empty readings
+  const total=Math.sqrt(x*x+y*y+z*z),dZ=Math.abs(z-prevZ); prevZ=z;
+  document.getElementById('accelX').textContent=x.toFixed(1);
+  document.getElementById('accelY').textContent=y.toFixed(1);
+  document.getElementById('accelZ').textContent=z.toFixed(1);
+  document.getElementById('accelTotal').textContent=total.toFixed(1);
+  const now=Date.now();
+  if(dZ>potholeThreshold&&total<crashThreshold&&(now-lastPotholeTime)>2000){lastPotholeTime=now;addPothole(dZ,dZ>potholeThreshold*2?'severe':'moderate');}
+  const st=document.getElementById('accelStatus');
+  if(total>crashThreshold&&!crashActive){st.textContent='💥 IMPACT!';st.style.color='#FF1744';totalImpacts++;triggerCrash();}
+  else if(total>15){st.textContent='⚠️ HIGH';st.style.color='#FFD600';document.getElementById('crashStatusMsg').textContent='⚠️ High — '+total.toFixed(1)+' m/s²';}
+  else{st.textContent='SAFE';st.style.color='#00C853';document.getElementById('crashStatusMsg').textContent='✅ Normal — '+total.toFixed(1)+' m/s²';}
+}
+
+function addPothole(force,severity){
+  const entry={time:new Date().toLocaleTimeString(),force:force.toFixed(1),severity,lat:currentLat?currentLat.toFixed(5):'N/A',lon:currentLon?currentLon.toFixed(5):'N/A',speed:Math.round(currentSpeed)};
+  potholes.push(entry);
+  const total=potholes.length,severe=potholes.filter(p=>p.severity==='severe').length,mod=potholes.filter(p=>p.severity==='moderate').length;
+  document.getElementById('totalPotholes').textContent=total;
+  document.getElementById('severePotholes').textContent=severe;
+  document.getElementById('moderatePotholes').textContent=mod;
+  document.getElementById('potholeCountMini').textContent=total;
+  const log=document.getElementById('potholeLog');
+  if(total===1)log.innerHTML='';
+  const item=document.createElement('div'); item.className='pothole-item '+severity;
+  item.innerHTML=`<div><div style="font-weight:700;color:${severity==='severe'?'#FF1744':'#FFD600'}">${severity.toUpperCase()} BUMP</div><div style="color:#666;margin-top:2px">${entry.time} • ${entry.speed} km/h • ${entry.force} m/s²</div><div style="color:#444;font-size:10px">📍 ${entry.lat}, ${entry.lon}</div></div><div style="font-size:20px">${severity==='severe'?'🚨':'⚠️'}</div>`;
+  log.insertBefore(item,log.firstChild);
+  const al=document.getElementById('potholeAlert'),ms=document.getElementById('potholeAlertMsg');
+  ms.textContent=severity==='severe'?`Severe pothole! ${force.toFixed(1)} m/s² — Slow down!`:`Moderate bump — ${force.toFixed(1)} m/s²`;
+  al.classList.add('show'); setTimeout(()=>al.classList.remove('show'),3000);
+  if(voiceEnabled)speak(severity==='severe'?'Khatarnak pothole! Sambhalo!':'Pothole detected. Sawdhan.');
+  vibrate(severity==='severe'?[300,100,300]:[150]);
+}
+
+function updatePotholeThreshold(v){potholeThreshold=parseInt(v);document.getElementById('potholeThreshVal').textContent=v;}
+
+function triggerCrash(){
+  if(crashActive)return; crashActive=true; let count=15;
+  document.getElementById('crashOverlay').classList.add('show');
+  document.getElementById('crashCountdown').textContent=count;
+  speak('Crash detect hua! Ambulance call hogi. Theek hain toh cancel karein.');
+  vibrate([500,200,500,200,500]);
+  crashCountdownTimer=setInterval(()=>{count--;document.getElementById('crashCountdown').textContent=count;document.getElementById('countdownNum').textContent=count;if(count<=0){clearInterval(crashCountdownTimer);document.getElementById('crashOverlay').classList.remove('show');crashActive=false;call108();shareLocation();}},1000);
+}
+function cancelCrash(){clearInterval(crashCountdownTimer);document.getElementById('crashOverlay').classList.remove('show');crashActive=false;speak('Alert cancel. Safe rahein.');}
+
+function triggerSOS(){if(confirm('SOS bhejein? 108 call hogi aur location share hogi.')){call108();setTimeout(shareLocation,2000);}}
+function call108(){window.location.href='tel:108';}
+function call100(){window.location.href='tel:100';}
+function shareLocation(){
+  if(currentLat&&currentLon){const maps=`https://maps.google.com/?q=${currentLat},${currentLon}`;const msg=`🚨 EMERGENCY! RakshakAI Alert!\n📍 ${maps}\n🚗 Speed: ${Math.round(currentSpeed)} km/h\n🕳️ Potholes: ${potholes.length}\n⏰ ${new Date().toLocaleTimeString()}\nMujhe madad chahiye!`;window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');document.getElementById('locationShareText').textContent=`📍 ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`;}
+  else alert('GPS abhi ready nahi. Thoda ruko.');
+}
+
+function updateScore(){
+  if(!driveStart)return; const el=(Date.now()-driveStart)/1000/60; if(el<0.5)return;
+  let spScore=40; if(maxSpeed>100)spScore-=20; else if(maxSpeed>80)spScore-=12; else if(maxSpeed>60)spScore-=5; spScore=Math.max(spScore,0);
+  const sev=potholes.filter(p=>p.severity==='severe').length,mod=potholes.filter(p=>p.severity==='moderate').length;
+  let phScore=Math.max(30-sev*5-mod*2,0),impScore=Math.max(20-totalImpacts*8,0);
+  const h=new Date().getHours(),tScore=(h>=22||h<=5)?5:(h>=18||h<=8)?8:10;
+  const tot=spScore+phScore+impScore+tScore;
+  const col=tot>=85?'#00C853':tot>=70?'#00C853':tot>=55?'#FFD600':'#FF1744';
+  const grade=tot>=85?'Excellent Driver! 🏆':tot>=70?'Good Driver 👍':tot>=55?'Average — Improve karein ⚠️':'Unsafe — Sawdhan! 🚨';
+  const tip=tot>=85?'💡 Bahut achha! Aise hi chalte rahein!':tot>=70?'💡 Speed control thoda aur better karein.':tot>=55?'💡 Speed kam karein, road bumps pe dhyan dein.':'💡 Bahut tez chal rahe hain. Jaan ki parwah karein.';
+  document.getElementById('scoreBig').textContent=tot; document.getElementById('scoreBig').style.color=col;
+  document.getElementById('scoreGrade').textContent=grade; document.getElementById('scoreGrade').style.color=col;
+  document.getElementById('scoreSpeed').textContent=spScore+'/40'; document.getElementById('scoreSpeed').style.color=spScore>25?'#00C853':'#FF1744';
+  document.getElementById('scorePothole').textContent=phScore+'/30'; document.getElementById('scorePothole').style.color=phScore>20?'#00C853':'#FFD600';
+  document.getElementById('scoreImpact').textContent=impScore+'/20'; document.getElementById('scoreImpact').style.color=impScore>12?'#00C853':'#FF1744';
+  document.getElementById('scoreTime').textContent=tScore+'/10'; document.getElementById('scoreTime').style.color=tScore>=8?'#00C853':'#FFD600';
+  document.getElementById('scoreTip').textContent=tip;
+  document.getElementById('summaryDist').textContent=totalDist.toFixed(2)+' km';
+  document.getElementById('summaryMax').textContent=Math.round(maxSpeed)+' km/h';
+  document.getElementById('summaryPotholes').textContent=potholes.length;
+  document.getElementById('summaryImpacts').textContent=totalImpacts;
+}
+
+function updateThreshold(v){crashThreshold=parseInt(v);document.getElementById('thresholdVal').textContent=v;document.getElementById('crashLimitDisplay').textContent=v;}
+function hav(a,b,c,d){const R=6371,dL=(c-a)*Math.PI/180,dO=(d-b)*Math.PI/180,x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dO/2)**2;return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));}
+function vibrate(p){if(navigator.vibrate)navigator.vibrate(p);}
+
+function testShake(){
+  // Simulate a crash/impact for demo purposes
+  document.getElementById('accelX').textContent='12.3';
+  document.getElementById('accelY').textContent='-8.7';
+  document.getElementById('accelZ').textContent='26.1';
+  document.getElementById('accelTotal').textContent='29.8';
+  document.getElementById('accelStatus').textContent='💥 IMPACT!';
+  document.getElementById('accelStatus').style.color='#FF1744';
+  document.getElementById('crashStatusMsg').textContent='💥 DEMO: Crash simulated! (29.8 m/s²)';
+  totalImpacts++;
+  triggerCrash();
+}
+function showTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  ['speed','pothole','crash','score','sos'].forEach((t,i)=>{if(t===name)document.querySelectorAll('.nav-item')[i].classList.add('active');});
+}
+</script>
+</body>
+</html>
